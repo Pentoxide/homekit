@@ -9,7 +9,6 @@ import time
 import signal
 import base64
 from hashlib import sha1
-#import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import configparser
 import rrdtool
@@ -67,20 +66,18 @@ class SimpleServer(BaseHTTPRequestHandler):
             self.wfile.write(self._html(e, 500))
 
 def check_message_signature(data, signature):
-    #ast.literal_eval(shared_secret)
     timestamp = time.time()
-    secret = ast.literal_eval(SHARED_SECRET)[int((timestamp + SHARED_OFFSET)
-                                                 / SHARED_DEVIDER) % SHARED_MODULO]
-    secret_previous = ast.literal_eval(SHARED_SECRET)[int((timestamp + SHARED_OFFSET - 5)
-                                                          / SHARED_DEVIDER) % SHARED_MODULO]
+    secret = SHARED_SECRET[int((timestamp + SHARED_OFFSET)
+                              / SHARED_DEVIDER) % SHARED_MODULO]
+    secret_previous = SHARED_SECRET[int((timestamp + SHARED_OFFSET - 5)
+                                       / SHARED_DEVIDER) % SHARED_MODULO]
     hashed = hmac.new(secret, data, sha1)
     hashed_previous = hmac.new(secret_previous, data, sha1)
     return bool(base64.b64encode(hashed.digest()).decode('utf-8') == signature or
                 base64.b64encode(hashed_previous.digest()).decode('utf-8') == signature)
 
 def get_sensor(sensor_id):
-    sensors = {"67f607fd1868114d324906f12869f15e": "home_in_test_sensor"}
-    return sensors[sensor_id]
+    return CONFIG.get("sensors", sensor_id)
 
 def process_message(data):
     rrd_path = "/opt/homekit/rrd"
@@ -119,8 +116,8 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     CONFIG = configparser.ConfigParser()
-    CONFIG.read("homekit_server.conf")
-    SHARED_SECRET = CONFIG.get("default", "shared_secret")
+    CONFIG.read(sys.argv[1])
+    SHARED_SECRET = ast.literal_eval(CONFIG.get("default", "shared_secret"))
     SHARED_OFFSET = int(CONFIG.get("default", "shared_offset"))
     SHARED_DEVIDER = int(CONFIG.get("default", "shared_devider"))
     SHARED_MODULO = int(CONFIG.get("default", "shared_modulo"))
