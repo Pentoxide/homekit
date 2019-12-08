@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf8
 
-#import os
 import sys
 import ast
 import hmac
@@ -80,8 +79,7 @@ def get_sensor(sensor_id):
     return CONFIG.get("sensors", sensor_id)
 
 def process_message(data):
-    rrd_path = "/opt/homekit/rrd"
-    filename = "{path}/{sensor}.rrd".format(path=rrd_path, sensor=get_sensor(data["sensor_id"]))
+    filename = "{path}/{sensor}.rrd".format(path=RRD_PATH, sensor=get_sensor(data["sensor_id"]))
     timestamp = data["timestamp"]
     del data["sensor_id"]
     del data["timestamp"]
@@ -117,8 +115,9 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, signal_handler)
     CONFIG = configparser.ConfigParser()
     CONFIG.read(sys.argv[1])
-    SHARED_SECRET = ast.literal_eval(CONFIG.get("default", "shared_secret"))
-    SHARED_OFFSET = int(CONFIG.get("default", "shared_offset"))
-    SHARED_DEVIDER = int(CONFIG.get("default", "shared_devider"))
-    SHARED_MODULO = int(CONFIG.get("default", "shared_modulo"))
+    RRD_PATH = CONFIG.get("general", "rrd_path")
+    SHARED_SECRET = ast.literal_eval(CONFIG.get("crypto", "shared_secret"))
+    SHARED_OFFSET = int(CONFIG.get("crypto", "shared_offset"))
+    SHARED_DEVIDER = int(CONFIG.get("crypto", "shared_devider"))
+    SHARED_MODULO = int(CONFIG.get("crypto", "shared_modulo"))
     run()
