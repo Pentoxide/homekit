@@ -1,0 +1,10 @@
+[Unit]
+Description=Deamon running script which transfers data from ESP to Redis
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/opt/homekit/esp_to_redis.py
+
+[Install]
+WantedBy=multi-user.target
